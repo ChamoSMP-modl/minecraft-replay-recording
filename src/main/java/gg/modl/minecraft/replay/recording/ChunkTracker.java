@@ -1,20 +1,12 @@
 package gg.modl.minecraft.replay.recording;
 
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.Column;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import gg.modl.minecraft.replay.util.BlockSnapshot;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,7 +21,9 @@ public class ChunkTracker {
 
     static final int SECTION_SIZE = 16;
     private static final int SURFACE_DEPTH = 16;
-    /** Fixed offset for packBlockPos/unpackBlockPos — works for all MC versions. */
+    /**
+     * Fixed offset for packBlockPos/unpackBlockPos — works for all MC versions.
+     */
     private static final int PACK_MIN_Y = -64;
 
     final int minY;
@@ -55,26 +49,20 @@ public class ChunkTracker {
         this.sectionsPerChunk = versionInfo.getSectionsPerChunk();
     }
 
-    /** Backward-compatible no-arg constructor — defaults to 1.18+ world height. */
+    /**
+     * Backward-compatible no-arg constructor — defaults to 1.18+ world height.
+     */
     public ChunkTracker() {
         this("1.21.4");
     }
 
-    static final class WorldChunkRef {
-        final String worldName;
-        final long packedXZ;
-
-        WorldChunkRef(String worldName, long packedXZ) {
-            this.worldName = worldName;
-            this.packedXZ = packedXZ;
-        }
+    public record WorldChunkRef(String worldName, long packedXZ) {
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof WorldChunkRef)) return false;
-            WorldChunkRef that = (WorldChunkRef) o;
-            return packedXZ == that.packedXZ && worldName.equals(that.worldName);
+            if (!(o instanceof WorldChunkRef(String name, long xz))) return false;
+            return packedXZ == xz && worldName.equals(name);
         }
 
         @Override
@@ -194,8 +182,8 @@ public class ChunkTracker {
      * Iterates the provided keys against the global cache with bounds + occlusion culling.
      */
     public List<BlockSnapshot> snapshotFromKeys(WorldChunkRef[] chunkKeys,
-                                                 int minX, int maxX, int minY, int maxY,
-                                                 int minZ, int maxZ, int radiusBlocks) {
+                                                int minX, int maxX, int minY, int maxY,
+                                                int minZ, int maxZ, int radiusBlocks) {
         List<BlockSnapshot> blocks = new ArrayList<>();
 
         int boundMinX = minX - radiusBlocks;
@@ -260,7 +248,7 @@ public class ChunkTracker {
      * Uses the global shared cache for neighbor lookups.
      */
     public List<BlockSnapshot> collectExposedNeighbors(UUID viewerUuid, Set<Long> changedPositions,
-                                                        Set<Long> existingPositions) {
+                                                       Set<Long> existingPositions) {
         return collectExposedNeighbors(getPlayerWorld(viewerUuid), changedPositions, existingPositions);
     }
 
@@ -268,12 +256,12 @@ public class ChunkTracker {
      * World-name variant — safe to call from any thread without per-player state dependency.
      */
     public List<BlockSnapshot> collectExposedNeighbors(String worldName, Set<Long> changedPositions,
-                                                        Set<Long> existingPositions) {
+                                                       Set<Long> existingPositions) {
         List<BlockSnapshot> extra = new ArrayList<>();
         ConcurrentHashMap<Long, RefCountedChunk> worldMap = globalChunks.get(worldName);
         if (worldMap == null) return extra;
 
-        int[][] offsets = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+        int[][] offsets = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
         for (long packed : changedPositions) {
             int[] pos = unpackBlockPos(packed);
@@ -305,13 +293,13 @@ public class ChunkTracker {
     }
 
     static long packBlockPos(int x, int y, int z) {
-        return ((long)(x & 0x3FFFFFF) << 38) | ((long)((y - PACK_MIN_Y) & 0xFFF) << 26) | (z & 0x3FFFFFFL);
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) ((y - PACK_MIN_Y) & 0xFFF) << 26) | (z & 0x3FFFFFFL);
     }
 
     static int[] unpackBlockPos(long packed) {
-        int x = ((int)((packed >> 38) & 0x3FFFFFF) << 6) >> 6;
+        int x = ((int) ((packed >> 38) & 0x3FFFFFF) << 6) >> 6;
         int y = (int) ((packed >> 26) & 0xFFF) + PACK_MIN_Y;
-        int z = ((int)(packed & 0x3FFFFFF) << 6) >> 6;
+        int z = ((int) (packed & 0x3FFFFFF) << 6) >> 6;
         return new int[]{x, y, z};
     }
 
@@ -343,7 +331,7 @@ public class ChunkTracker {
         for (WorldChunkRef ref : loaded) {
             ConcurrentHashMap<Long, RefCountedChunk> worldMap = globalChunks.get(ref.worldName);
             if (worldMap == null) continue;
-            worldMap.computeIfPresent(ref.packedXZ, (k, rc) -> rc.refCount.decrementAndGet() <= 0 ? null : rc);
+            worldMap.computeIfPresent(ref.packedXZ, (_, rc) -> rc.refCount.decrementAndGet() <= 0 ? null : rc);
         }
     }
 
@@ -372,28 +360,17 @@ public class ChunkTracker {
 
     private final Map<Integer, Boolean> opaqueCache = new ConcurrentHashMap<>();
 
-    private static final Set<String> NON_OPAQUE_KEYWORDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "glass", "leaves", "water", "lava", "ice", "barrier",
-            "slime_block", "honey_block", "tinted_glass",
-            "slab", "stairs", "fence", "wall", "gate",
-            "grass", "fern", "flower", "bush", "sapling", "seagrass", "kelp",
-            "vine", "lily", "azalea", "moss", "spore", "dripleaf",
-            "sweet_berry", "cave_vines", "glow_lichen", "hanging_roots",
-            "mangrove_roots", "sugar_cane", "cactus", "bamboo", "mushroom",
-            "fungus", "wart_block", "nether_sprouts", "roots",
-            "wheat", "carrot", "potato", "beetroot", "melon_stem", "pumpkin_stem",
-            "cocoa", "torchflower_crop", "pitcher_crop",
-            "torch", "lantern", "lever", "button", "pressure_plate",
-            "redstone_wire", "repeater", "comparator", "piston_head",
-            "door", "trapdoor", "sign",
-            "rail", "carpet", "candle", "chain", "bell", "anvil",
-            "brewing_stand", "cauldron", "composter", "grindstone",
-            "hopper", "lectern", "stonecutter", "enchanting_table",
-            "end_rod", "lightning_rod", "pointed_dripstone",
-            "scaffolding", "ladder", "cobweb", "snow",
-            "head", "skull", "flower_pot", "banner",
-            "campfire", "soul_campfire", "bed"
-    )));
+    private static final Set<String> NON_OPAQUE_KEYWORDS = Set.of(
+            "glass", "leaves", "water", "lava", "ice", "barrier", "slime_block", "honey_block", "tinted_glass", "slab",
+            "stairs", "fence", "wall", "gate", "grass", "fern", "flower", "bush", "sapling", "seagrass", "kelp", "vine",
+            "lily", "azalea", "moss", "spore", "dripleaf", "sweet_berry", "cave_vines", "glow_lichen", "hanging_roots",
+            "mangrove_roots", "sugar_cane", "cactus", "bamboo", "mushroom", "fungus", "wart_block", "nether_sprouts",
+            "roots", "wheat", "carrot", "potato", "beetroot", "melon_stem", "pumpkin_stem", "cocoa", "torchflower_crop",
+            "pitcher_crop", "torch", "lantern", "lever", "button", "pressure_plate", "redstone_wire", "repeater", "comparator",
+            "piston_head", "door", "trapdoor", "sign", "rail", "carpet", "candle", "chain", "bell", "anvil", "brewing_stand", "cauldron",
+            "composter", "grindstone", "hopper", "lectern", "stonecutter", "enchanting_table", "end_rod", "lightning_rod", "pointed_dripstone",
+            "scaffolding", "ladder", "cobweb", "snow", "head", "skull", "flower_pot", "banner", "campfire", "soul_campfire", "bed"
+    );
 
     private boolean isOpaque(String worldName, int x, int y, int z) {
         if (y < minY || y >= maxY) return false;
@@ -406,7 +383,7 @@ public class ChunkTracker {
         return opaqueCache.computeIfAbsent(stateId, id -> {
             try {
                 WrappedBlockState state = WrappedBlockState.getByGlobalId(versionInfo.toClientVersion(), id);
-                String name = state.getType().getName().toString().toLowerCase();
+                String name = state.getType().getName().toLowerCase();
                 return NON_OPAQUE_KEYWORDS.stream().noneMatch(name::contains);
             } catch (Exception e) {
                 return true;
@@ -485,7 +462,7 @@ public class ChunkTracker {
      * MC has ~26,800 block states — fits in unsigned short (0-65535).
      * Memory: ~12 active sections x 8 KB = ~96 KB per chunk (vs ~192 KB with ConcurrentHashMap).
      */
-    static class ChunkBlockData {
+    public static class ChunkBlockData {
         private final int chunkX;
         private final int chunkZ;
         private final int minY;
@@ -551,7 +528,12 @@ public class ChunkTracker {
                     out.add(new BlockSnapshot(worldX, (short) worldY, worldZ, stateId)));
         }
 
-        int getChunkX() { return chunkX; }
-        int getChunkZ() { return chunkZ; }
+        int getChunkX() {
+            return chunkX;
+        }
+
+        int getChunkZ() {
+            return chunkZ;
+        }
     }
 }

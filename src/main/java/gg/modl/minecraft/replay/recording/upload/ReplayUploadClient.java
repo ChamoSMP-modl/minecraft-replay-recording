@@ -3,7 +3,6 @@ package gg.modl.minecraft.replay.recording.upload;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import gg.modl.minecraft.replay.recording.RecordingConfig;
-import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
@@ -24,12 +23,10 @@ public class ReplayUploadClient {
     private static final int UPLOAD_READ_TIMEOUT_MS = 5 * 60 * 1000;
 
     private final RecordingConfig config;
-    private final Logger logger;
     private final Gson gson;
 
     public ReplayUploadClient(RecordingConfig config, Logger logger) {
         this.config = config;
-        this.logger = logger;
         this.gson = new Gson();
     }
 
@@ -65,7 +62,7 @@ public class ReplayUploadClient {
         body.addProperty("fileSize", file.length());
         body.addProperty("signature", signature);
 
-        HttpURLConnection conn = (HttpURLConnection) new URL(config.uploadEndpoint() + "/v1/plugin/replay/upload").openConnection();
+        HttpURLConnection conn = (HttpURLConnection) new URI(config.uploadEndpoint() + "/v1/plugin/replay/upload").toURL().openConnection();
         conn.setRequestMethod("POST");
         conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
         conn.setReadTimeout(READ_TIMEOUT_MS);
@@ -96,7 +93,7 @@ public class ReplayUploadClient {
     }
 
     private void uploadToStorage(File file, String presignedUrl) throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(presignedUrl).openConnection();
+        HttpURLConnection conn = (HttpURLConnection) new URI(presignedUrl).toURL().openConnection();
         conn.setRequestMethod("PUT");
         conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
         conn.setReadTimeout(UPLOAD_READ_TIMEOUT_MS);
@@ -115,7 +112,7 @@ public class ReplayUploadClient {
     }
 
     private void confirmUpload(String replayId, String apiKey) throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(config.uploadEndpoint() + "/v1/plugin/replay/confirm/" + replayId).openConnection();
+        HttpURLConnection conn = (HttpURLConnection) new URI(config.uploadEndpoint() + "/v1/plugin/replay/confirm/" + replayId).toURL().openConnection();
         conn.setRequestMethod("POST");
         conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
         conn.setReadTimeout(READ_TIMEOUT_MS);
@@ -146,26 +143,9 @@ public class ReplayUploadClient {
         }
     }
 
-    @Getter
-    public static class UploadResult {
-        private final String replayId;
-        private final String viewerUrl;
-
-        public UploadResult(String replayId, String viewerUrl) {
-            this.replayId = replayId;
-            this.viewerUrl = viewerUrl;
-        }
+    public record UploadResult(String replayId, String viewerUrl) {
     }
 
-    private static class InitResponse {
-        final String replayId;
-        final String uploadUrl;
-        final String viewerUrl;
-
-        InitResponse(String replayId, String uploadUrl, String viewerUrl) {
-            this.replayId = replayId;
-            this.uploadUrl = uploadUrl;
-            this.viewerUrl = viewerUrl;
-        }
+    private record InitResponse(String replayId, String uploadUrl, String viewerUrl) {
     }
 }

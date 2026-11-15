@@ -1,40 +1,40 @@
 plugins {
-    `java-library`
-    `maven-publish`
+    id("java-library")
+    id("maven-publish")
 }
 
-val packetEventsVersion = "2.12.10"
-
-group = "gg.modl.minecraft.replay"
-version = "1.1.7"
+group = "net.chamosmp.modl.minecraft.replay"
+version = "1.1.8"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
 repositories {
     mavenCentral()
     maven("https://nexus.modl.gg/repository/maven-releases/")
-    maven("https://nexus.modl.gg/repository/maven-snapshots/")
     maven("https://repo.codemc.io/repository/maven-releases/")
-    maven("https://repo.codemc.io/repository/maven-snapshots/")
 }
 
 dependencies {
-    api("gg.modl.minecraft.replay:replay-format:1.1.0")
-    implementation("com.google.code.gson:gson:2.11.0")
+    api(libs.replay.format)
+    implementation(libs.gson)
 
-    // Platform-agnostic PacketEvents API from the Modl fork to match server/runtime behavior.
-    compileOnly("gg.modl.minecraft.packetevents:packetevents-api:$packetEventsVersion")
-    compileOnly("net.kyori:adventure-api:4.26.1")
+    compileOnly(libs.packetevents.api)
 
-    compileOnly("org.projectlombok:lombok:1.18.24")
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    compileOnly(libs.adventure.api)
+    compileOnly(libs.adventure.gson)
 
-    testImplementation("gg.modl.minecraft.packetevents:packetevents-api:$packetEventsVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+
+    testImplementation(libs.packetevents.api)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.launcher)
 }
 
 tasks.test {
@@ -43,17 +43,25 @@ tasks.test {
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("maven") {
             from(components["java"])
         }
     }
     repositories {
         maven {
-            name = "ModlNexus"
-            url = uri("https://nexus.modl.gg/repository/maven-releases/")
+            name = "ChamoSMP-Releases"
+            url = uri("https://maven.chamosmp.net/releases")
             credentials {
-                username = System.getenv("NEXUS_USER") ?: findProperty("nexus.user") as String?
-                password = System.getenv("NEXUS_PASS") ?: findProperty("nexus.pass") as String?
+                username = System.getenv("REPOSILITE_USER")
+                password = System.getenv("REPOSILITE_TOKEN")
+            }
+        }
+        maven {
+            name = "ChamoSMP-Snapshots"
+            url = uri("https://maven.chamosmp.net/snapshots")
+            credentials {
+                username = System.getenv("REPOSILITE_USER")
+                password = System.getenv("REPOSILITE_TOKEN")
             }
         }
     }

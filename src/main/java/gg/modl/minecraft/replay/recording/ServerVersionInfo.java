@@ -1,11 +1,13 @@
 package gg.modl.minecraft.replay.recording;
 
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import lombok.Getter;
 
 /**
  * Parses a Minecraft version string and exposes world-height and block-format
  * information needed to correctly record replays across server versions.
  */
+@Getter
 public final class ServerVersionInfo {
 
     private final int major;
@@ -30,11 +32,6 @@ public final class ServerVersionInfo {
             this.maxY = 256;
         }
         this.sectionsPerChunk = (maxY - minY) / 16;
-    }
-
-    /** True for pre-1.13 servers that use legacy block IDs (blockId << 4 | data). */
-    public boolean isLegacy() {
-        return major == 1 && minor < 13;
     }
 
     /** Map this MC version to the closest PacketEvents ClientVersion. */
@@ -88,10 +85,4 @@ public final class ServerVersionInfo {
         }
     }
 
-    public int getMinY() { return minY; }
-    public int getMaxY() { return maxY; }
-    public int getSectionsPerChunk() { return sectionsPerChunk; }
-    public int getMajor() { return major; }
-    public int getMinor() { return minor; }
-    public int getPatch() { return patch; }
 }

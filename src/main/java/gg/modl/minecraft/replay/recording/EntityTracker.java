@@ -1,6 +1,7 @@
 package gg.modl.minecraft.replay.recording;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -217,8 +218,17 @@ public class EntityTracker {
         private final boolean player;
         private final int entityTypeId;
         private final boolean noThrottleMovement;
-        private volatile double x, y, z;
-        private volatile float yaw, pitch;
+        @Setter
+        private volatile double x;
+        @Setter
+        private volatile double y;
+        @Setter
+        private volatile double z;
+        @Setter
+        private volatile float yaw;
+        @Setter
+        private volatile float pitch;
+        @Setter
         private volatile String playerName;
 
         public TrackedEntity(int entityId, UUID uuid, boolean player, int entityTypeId,
@@ -240,12 +250,8 @@ public class EntityTracker {
             this.pitch = pitch;
         }
 
-        public void setX(double x) { this.x = x; }
-        public void setY(double y) { this.y = y; }
-        public void setZ(double z) { this.z = z; }
-        public void setYaw(float yaw) { this.yaw = yaw; }
-        public void setPitch(float pitch) { this.pitch = pitch; }
-        public void setPlayerName(String playerName) { this.playerName = playerName; }
-        public int getTypeId() { return entityTypeId; }
+        public int getTypeId() {
+            return entityTypeId;
+        }
     }
 }

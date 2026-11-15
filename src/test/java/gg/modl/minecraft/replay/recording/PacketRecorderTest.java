@@ -4,10 +4,10 @@ import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -227,12 +227,12 @@ class PacketRecorderTest {
 
     private static final class TestProtocolPacketEvent extends ProtocolPacketEvent {
         private TestProtocolPacketEvent() {
-            super(0, (PacketTypeCommon) null, ServerVersion.V_1_21_8,
+            super(0, null, ServerVersion.V_1_21_8,
                     null, new User(null, ConnectionState.PLAY, ClientVersion.V_1_21_7, null), null, null);
         }
 
         @Override
-        public void call(PacketListenerCommon listener) {
+        public void call(@NonNull PacketListenerCommon listener) {
         }
     }
 

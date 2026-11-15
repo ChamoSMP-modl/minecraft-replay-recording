@@ -1,0 +1,26 @@
+[versions]
+
+packetevents = "2.14.0"
+adventure = "5.2.0"
+gson = "2.15.0"
+replay-format = "1.1.0"
+lombok = "1.18.48"
+
+junit-bom = "6.1.3"
+
+[libraries]
+
+packetevents-api = { module = "com.github.retrooper:packetevents-api", version.ref = "packetevents" }
+
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventure-gson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventure" }
+
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+replay-format = { module = "gg.modl.minecraft.replay:replay-format", version.ref = "replay-format" }
+
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }

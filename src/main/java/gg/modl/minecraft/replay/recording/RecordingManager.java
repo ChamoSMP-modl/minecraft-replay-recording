@@ -13,6 +13,8 @@ import gg.modl.minecraft.replay.format.events.PlayerSpawnEvent;
 import gg.modl.minecraft.replay.util.BlockSnapshot;
 import gg.modl.minecraft.replay.util.FormatConstants;
 import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +57,7 @@ public class RecordingManager {
 
     private ChunkTracker chunkTracker;
     private EntityTracker entityTracker;
-    private PacketRecorder packetRecorder;
+    private @Setter PacketRecorder packetRecorder;
 
     public RecordingManager(RecordingConfig config, File replaysDir, Logger logger) {
         this.config = config;
@@ -66,7 +68,7 @@ public class RecordingManager {
         this.writerExecutor = Executors.newFixedThreadPool(writerThreads, new ThreadFactory() {
             private final AtomicInteger counter = new AtomicInteger(1);
             @Override
-            public Thread newThread(Runnable r) {
+            public Thread newThread(@NotNull Runnable r) {
                 Thread t = new Thread(r, "ReplayRecording-Writer-" + counter.getAndIncrement());
                 t.setDaemon(true);
                 return t;
@@ -77,10 +79,6 @@ public class RecordingManager {
     public void setTrackers(ChunkTracker chunkTracker, EntityTracker entityTracker) {
         this.chunkTracker = chunkTracker;
         this.entityTracker = entityTracker;
-    }
-
-    public void setPacketRecorder(PacketRecorder packetRecorder) {
-        this.packetRecorder = packetRecorder;
     }
 
     /**

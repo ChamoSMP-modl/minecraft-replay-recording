@@ -9,85 +9,27 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.Enchantment;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.Equipment;
-import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.protocol.player.TextureProperty;
-import com.github.retrooper.packetevents.protocol.player.User;
-import com.github.retrooper.packetevents.protocol.player.UserProfile;
+import com.github.retrooper.packetevents.protocol.player.*;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.Column;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAnimation;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionAndRotation;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
-import com.github.retrooper.packetevents.protocol.item.enchantment.Enchantment;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkDataBulk;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCollectItem;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEffect;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEquipment;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityRelativeMove;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityRelativeMoveAndRotation;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerHeldItemChange;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerHurtAnimation;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import gg.modl.minecraft.replay.format.ReplayEvent;
-import gg.modl.minecraft.replay.format.events.BlockChangeEvent;
-import gg.modl.minecraft.replay.format.events.ChatEvent;
-import gg.modl.minecraft.replay.format.events.EntityMoveEvent;
-import gg.modl.minecraft.replay.format.events.EntityRemoveEvent;
-import gg.modl.minecraft.replay.format.events.EntitySpawnEvent;
-import gg.modl.minecraft.replay.format.events.PlayerAnimEvent;
-import gg.modl.minecraft.replay.format.events.PlayerEffectsEvent;
-import gg.modl.minecraft.replay.format.events.PlayerEquipmentFullEvent;
-import gg.modl.minecraft.replay.format.events.PlayerHealthEvent;
-import gg.modl.minecraft.replay.format.events.PlayerInventoryEvent;
-import gg.modl.minecraft.replay.format.events.PlayerMoveEvent;
-import gg.modl.minecraft.replay.format.events.PlayerRemoveEvent;
-import gg.modl.minecraft.replay.format.events.PlayerSkinEvent;
-import gg.modl.minecraft.replay.format.events.PlayerSpawnEvent;
-
+import gg.modl.minecraft.replay.format.events.*;
+import lombok.Getter;
+import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -95,7 +37,7 @@ import java.util.logging.Logger;
  * Intercepts outbound packets via PacketEvents on Netty I/O threads.
  * Translates packets to ReplayEvent objects and enqueues them for recording.
  * Never touches the main server thread.
- *
+ * <p>
  * Decoupled from any specific plugin — uses RecordingManager and RecordingConfig.
  */
 public class PacketRecorder extends PacketListenerAbstract {
@@ -103,7 +45,9 @@ public class PacketRecorder extends PacketListenerAbstract {
     private final RecordingManager recordingManager;
     private final RecordingConfig config;
     private final Logger logger;
+    @Getter
     private final EntityTracker entityTracker;
+    @Getter
     private final ChunkTracker chunkTracker;
     private final ClientVersion configuredClientVersion;
     private final ExecutorService skinDownloadExecutor;
@@ -155,14 +99,6 @@ public class PacketRecorder extends PacketListenerAbstract {
         this.configuredClientVersion = new ServerVersionInfo(config.mcVersion()).toClientVersion();
         this.skinDownloadExecutor = skinDownloadExecutor;
         recordingManager.setTrackers(chunkTracker, entityTracker);
-    }
-
-    public EntityTracker getEntityTracker() {
-        return entityTracker;
-    }
-
-    public ChunkTracker getChunkTracker() {
-        return chunkTracker;
     }
 
     /**
@@ -271,16 +207,28 @@ public class PacketRecorder extends PacketListenerAbstract {
                 double px = Double.NaN, py = Double.NaN, pz = Double.NaN;
                 float pYaw = Float.NaN, pPitch = Float.NaN;
 
-                if (type == PacketType.Play.Client.PLAYER_POSITION) {
-                    WrapperPlayClientPlayerPosition wrapper = new WrapperPlayClientPlayerPosition(event);
-                    px = wrapper.getLocation().getX(); py = wrapper.getLocation().getY(); pz = wrapper.getLocation().getZ();
-                } else if (type == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-                    WrapperPlayClientPlayerPositionAndRotation wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
-                    px = wrapper.getLocation().getX(); py = wrapper.getLocation().getY(); pz = wrapper.getLocation().getZ();
-                    pYaw = wrapper.getLocation().getYaw(); pPitch = wrapper.getLocation().getPitch();
-                } else if (type == PacketType.Play.Client.PLAYER_ROTATION) {
-                    WrapperPlayClientPlayerRotation wrapper = new WrapperPlayClientPlayerRotation(event);
-                    pYaw = wrapper.getLocation().getYaw(); pPitch = wrapper.getLocation().getPitch();
+                switch (type) {
+                    case PacketType.Play.Client.PLAYER_POSITION -> {
+                        WrapperPlayClientPlayerPosition wrapper = new WrapperPlayClientPlayerPosition(event);
+                        px = wrapper.getLocation().getX();
+                        py = wrapper.getLocation().getY();
+                        pz = wrapper.getLocation().getZ();
+                    }
+                    case PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION -> {
+                        WrapperPlayClientPlayerPositionAndRotation wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
+                        px = wrapper.getLocation().getX();
+                        py = wrapper.getLocation().getY();
+                        pz = wrapper.getLocation().getZ();
+                        pYaw = wrapper.getLocation().getYaw();
+                        pPitch = wrapper.getLocation().getPitch();
+                    }
+                    case PacketType.Play.Client.PLAYER_ROTATION -> {
+                        WrapperPlayClientPlayerRotation wrapper = new WrapperPlayClientPlayerRotation(event);
+                        pYaw = wrapper.getLocation().getYaw();
+                        pPitch = wrapper.getLocation().getPitch();
+                    }
+                    default -> {
+                    }
                 }
 
                 boolean hasPosition = !Double.isNaN(px);
@@ -328,6 +276,7 @@ public class PacketRecorder extends PacketListenerAbstract {
 
     /**
      * Handle a player's C2S position/rotation and emit into a specific recording.
+     *
      * @param viewerUuid the recording target (whose recording this goes into)
      * @param playerUuid the player who sent the C2S packet
      */
@@ -609,7 +558,7 @@ public class PacketRecorder extends PacketListenerAbstract {
         } else if (spawnKind == SpawnEntityClassifier.SpawnKind.NON_PLAYER) {
             if (entityType == null) {
                 logger.warning("Unresolved entity type for NON_PLAYER! entityId=" + entityId + ", entityUuid=" + entityUuid);
-                return; 
+                return;
             }
             int typeId = entityType.getId(version);
             boolean noThrottleMovement = isNoThrottleType(entityType, version);
@@ -622,8 +571,7 @@ public class PacketRecorder extends PacketListenerAbstract {
                 String typeName = entityType.getName().toString();
                 if (typeName.startsWith("minecraft:")) typeName = typeName.substring(10);
                 if (entityType == EntityTypes.FALLING_BLOCK) {
-                    int blockStateId = data;
-                    typeName = typeName + ":" + blockStateId;
+                    typeName = typeName + ":" + data;
                 }
                 byte[] metadata = typeName.getBytes(StandardCharsets.UTF_8);
                 EntitySpawnEvent spawnEvent = new EntitySpawnEvent(
@@ -904,8 +852,7 @@ public class PacketRecorder extends PacketListenerAbstract {
         if (entity.isPlayer()) {
             // Check for sneak state changes via entity metadata index 0 (shared flags)
             for (EntityData<?> data : metadata) {
-                if (data.getIndex() == 0 && data.getValue() instanceof Byte) {
-                    Byte flags = (Byte) data.getValue();
+                if (data.getIndex() == 0 && data.getValue() instanceof Byte flags) {
                     boolean sneaking = (flags & 0x02) != 0;
                     Map<Integer, Boolean> states = sneakStates.computeIfAbsent(viewerUuid, k -> new ConcurrentHashMap<>());
                     Boolean prev = states.put(entityId, sneaking);
@@ -926,8 +873,7 @@ public class PacketRecorder extends PacketListenerAbstract {
             int itemTypeId = EntityTypes.ITEM.getId(eventClientVersion(event));
             if (entity.getTypeId() == itemTypeId) {
                 for (EntityData<?> data : metadata) {
-                    if (data.getIndex() == 8 && data.getValue() instanceof ItemStack) {
-                        ItemStack itemStack = (ItemStack) data.getValue();
+                    if (data.getIndex() == 8 && data.getValue() instanceof ItemStack itemStack) {
                         String itemName = getItemName(itemStack);
                         if (!itemName.equals("air")) {
                             String typeName = "item:" + itemName;
@@ -1374,7 +1320,7 @@ public class PacketRecorder extends PacketListenerAbstract {
         String message;
         try {
             WrapperPlayServerSystemChatMessage wrapper = new WrapperPlayServerSystemChatMessage(event);
-            message = wrapper.getMessageJson();
+            message = JSONComponentSerializer.json().serialize(wrapper.getMessage());
         } catch (Exception e) {
             // PacketEvents can fail to deserialize chat messages containing NBT data components
             // (e.g. item hover text with custom_data). Skip these non-critical messages.
@@ -1581,7 +1527,7 @@ public class PacketRecorder extends PacketListenerAbstract {
     private List<PlayerInventoryEvent.EnchantEntry> getEnchantments(ItemStack item, ClientVersion version) {
         if (item == null || item.isEmpty()) return Collections.emptyList();
         try {
-            List<Enchantment> enchants = item.getEnchantments(version);
+            List<Enchantment> enchants = item.getEnchantments();
             if (enchants == null || enchants.isEmpty()) return Collections.emptyList();
             List<PlayerInventoryEvent.EnchantEntry> result = new ArrayList<>();
             for (Enchantment ench : enchants) {
